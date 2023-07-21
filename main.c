@@ -10,6 +10,10 @@ void badCommand();
 
 void getV(FILE *pFile, char *k);
 
+void addKV(FILE *pFile, char *k);
+
+char * checkIfExist(FILE *pFile, char *key, char *value);
+
 /* cat:  concatenate files, version 1 */
 int main(int argc, char *argv[])
 {
@@ -21,25 +25,11 @@ int main(int argc, char *argv[])
 //    FILE * x = fopen("f.txt","a");
 //    int fputc(int c, FILE *stream);
 //    int fputs(const char * restrict s, FILE * restrict stream);
-//    char*s = argv[1];
-//    s."fff";
-//    char *s;
     char *k = argv[1];
-//    bool validCommad =
     if(k[0] == 'p'){
-        char *s;
-        int x = 0;
-        while ((s = strsep(&k, ",")) != NULL ){
-            if(x!=0) {
-                printf("%s\n", s);
-                fputs(s,fp);
-                if(x==1)
-                    fputs(",",fp);
-            }x++;
-        }
-        fputs( "\n",fp);
-
-    }else if(k[0] == 'g'){
+        addKV(fp, k);
+    }
+    else if(k[0] == 'g'){
         getV(fp,k);
     }else if(k[0] == 'd'){
         char *s;
@@ -107,6 +97,84 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+void addKV(FILE *fp, char *k) {
+    fp = fopen("database.txt", "a");
+    char *s;
+    char *st= k;
+    st = strdup(k);
+    int x =0;
+    int exp = 1;
+    int comma=0;
+    for (int i = 0; i < strlen(k); ++i) {
+        if(k[i]==','){
+            comma++;
+        }
+    }
+    if(comma!=2){
+        exp = 0;
+    }
+//    printf("%s\n", st);
+    while ((s = strsep(&k, ",")) != NULL ){
+        if(x>2){
+            exp = 0;
+            break;
+        }
+        if(x == 0 ){
+            if(strcmp("p",s)!=0){
+                exp = 0;
+                break;
+            }
+        }
+        if(x==1) {
+            for (int i = 0; i < strlen(s); ++i) {
+                if( isdigit(s[i]) == 0){
+                    ///// exception
+                    exp = 0;
+                    break;
+                }
+            }
+        }
+        //// check is alpha ?
+//            if(x == 2){
+//                for (int i = 0; i < strlen(s); ++i) {
+//                    if( isalpha(s[i]) == 0){
+//                        ///// exception
+//                        exp = 0;
+//                        break;
+//                    }
+//                }
+//            }
+        x++;
+    }
+//    printf("%s\n", s);
+
+    if(exp==0){
+        badCommand();
+    }else {
+        x =0;
+//        printf("%s\n", st);
+        char* v = "-1";
+        bool exist = false;
+        while ((s = strsep(&st, ",")) != NULL) {
+            if(x==1){
+               if(checkIfExist(fp,s,v) != "-1"){
+                   exist = true;
+                   break;
+               }
+            }
+            if (x != 0) {
+//                printf("%s\n", s);
+                fputs(s, fp);
+                if (x == 1)
+                    fputs(",", fp);
+            }
+            x++;
+        }
+        if(exist==false)
+        fputs("\n", fp);
+    }
+}
+
 void getV(FILE *fp, char *k) {
     char *s;
     int x =0;
@@ -114,15 +182,12 @@ void getV(FILE *fp, char *k) {
     int exp = 1;
     int comma=0;
     for (int i = 0; i < strlen(k); ++i) {
-//        printf("%c%s",k[i],"_");
-
         if(k[i]==','){
             comma++;
         }
     }
     if(comma!=1){
         exp = 0;
-//            break;
     }
     while ((s = strsep(&k, ",")) != NULL ){
         if(x>1){
@@ -148,65 +213,61 @@ void getV(FILE *fp, char *k) {
     }
     if(exp==0){
         badCommand();
-    }else{
-        char *s;
-        char * line = NULL;
-        size_t len = 0;
-        fp = fopen("database.txt", "r");
-        if (fp == NULL){
-            exit(EXIT_FAILURE);
-        }
-        bool finished = false;
-        while ((getline(&line, &len, fp)) != -1) {
-            int x = 0;
-            while ((s = strsep(&line, ",")) != NULL ){
-                if(x==1){
-                    printf("%s",s);
-                    finished = true;
-                    break;
-                }
-                if(strcmp(s,key)==0){
-                    printf("%s,",s);
-
-                    x++;
-                }else{
-                    break;
-                }
-            }
-            if(finished){
-                break;
-            }
-        }
-        if(!finished){
+    }
+    else{
+        char * value="-1";
+       char* found =  checkIfExist(fp,key,value);
+        if(found != "-1"){
+            printf("%s,%s",key,found);
+        }else{
             printf("%s%s",key," not found");
         }
 
     }
 }
 
-void badCommand() { printf("%s" , "bad command"); }
+char * checkIfExist(FILE *fp, char *key, char *(value)) {
+    char *s;
+    char * line = NULL;
+    size_t len = 0;
+    fp = fopen("database.txt", "r");
+    if (fp == NULL){
+        exit(EXIT_FAILURE);
+    }
+    bool finished = false;
+    while ((getline(&line, &len, fp)) != -1) {
+        int x = 0;
+        while ((s = strsep(&line, ",")) != NULL ){
+            if(x==1){
+                value = s;
+                finished = true;
+                break;
+            }
+            if(strcmp(s,key)==0){
+                x++;
+            }else{
+                break;
+            }
+        }
+        if(finished){
+            break;
+        }
+    }
+    if(finished)return value;
+    else return "-1";
 
+}
+void badCommand() { printf("%s" , "bad command"); }
 void printAll(FILE *fp) {
     char * line = NULL;
     size_t len = 0;
     fp = fopen("database.txt", "r");
     if (fp == NULL){
-//            printf("")
         exit(EXIT_FAILURE);
     }
     while ((getline(&line, &len, fp)) != -1) {
         printf("%s", line);
     }
 }
-//void getV(FILE *fp , char*k)
-//{
-//
-//}
-/* filecopy:  copy file ifp to file ofp */
-//void filecopy(FILE *ifp, FILE *ofp)
-//{  int c;
-//
-//    while ((c = getc(ifp)) != EOF)
-//        putc(c, ofp);
-//}
+
 
