@@ -21,23 +21,22 @@ void dCommand(FILE *pFile, char *k);
 int main(int argc, char *argv[])
 {
     FILE *fp = fopen("database.txt", "a");
-    char *k = argv[1];
-    if(k[0] == 'p'){
-        addKV(fp, k);
-    }
-    else if(k[0] == 'g'){
-        getV(fp,k);
-    }
-    else if(k[0] == 'd'){
-        dCommand(fp,k);
-        }else if(strcmp(k , "c") == 0){
+    for (int i = 1; i < argc; ++i) {
+        char *k = argv[i];
+        if (k[0] == 'p') {
+            addKV(fp, k);
+        } else if (k[0] == 'g') {
+            getV(fp, k);
+        } else if (k[0] == 'd') {
+            dCommand(fp, k);
+        } else if (strcmp(k, "c") == 0) {
 //        fclose(fp);
-        remove("database.txt");
-    }
-    else if(strcmp(k , "a") == 0){
-        printAll(fp);
-    }else{
-        badCommand();
+            remove("database.txt");
+        } else if (strcmp(k, "a") == 0) {
+            printAll(fp);
+        } else {
+            badCommand();
+        }
     }
      fclose(fp);
     return 0;
