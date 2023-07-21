@@ -291,7 +291,7 @@ void getV(FILE *fp, char *k) {
         if(found != "-1"){
             printf("%s,%s",key,found);
         }else{
-            printf("%s%s",key," not found");
+            printf("%s%s\n",key," not found");
         }
 
     }
