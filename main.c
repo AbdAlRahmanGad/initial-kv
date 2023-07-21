@@ -14,70 +14,23 @@ void addKV(FILE *pFile, char *k);
 
 char * checkIfExist(FILE *pFile, char *key, char *value);
 
-/* cat:  concatenate files, version 1 */
+void removeLine(int number);
+
+void dCommand(FILE *pFile, char *k);
+
 int main(int argc, char *argv[])
 {
     FILE *fp = fopen("database.txt", "a");
-
-
-//    FILE *fp;
-//    void filecopy(FILE *, FILE *);
-//    FILE * x = fopen("f.txt","a");
-//    int fputc(int c, FILE *stream);
-//    int fputs(const char * restrict s, FILE * restrict stream);
     char *k = argv[1];
     if(k[0] == 'p'){
         addKV(fp, k);
     }
     else if(k[0] == 'g'){
         getV(fp,k);
-    }else if(k[0] == 'd'){
-        char *s;
-
-        char * line = NULL;
-        size_t len = 0;
-//        printf("%s","comp_____");
-
-        fp = fopen("database.txt", "r");
-        if (fp == NULL){
-            exit(EXIT_FAILURE);
-        }
-        char* comp;
-        int cnt = 0;
-            while ((s = strsep(&k, ",")) != NULL ){
-                if(cnt == 1) {
-                    comp = s;
-//                    printf("%s", comp);
-//                    break;
-
-                }else cnt++;
-            }
-            bool finished = false;
-        while ((getline(&line, &len, fp)) != -1) {
-//            printf("%s", line);
-//            for (int i = 0; i < strlen(line); ++i) {
-                int x = 0;
-                while ((s = strsep(&line, ",")) != NULL ){
-//                    if(x==1){
-////                        printf("%s",s);
-//                        finished = true;
-//                        break;
-//                    }
-                   if(strcmp(s,comp)==0){
-//                       printf("%s,",s);
-                       finished = true;
-                       break;
-                   }else{
-                       break;
-                   }
-                }
-            if(finished){
-                remove(line);
-                break;
-            }
-//            }
-        }
-    }else if(strcmp(k , "c") == 0){
+    }
+    else if(k[0] == 'd'){
+        dCommand(fp,k);
+        }else if(strcmp(k , "c") == 0){
 //        fclose(fp);
         remove("database.txt");
     }
@@ -86,15 +39,134 @@ int main(int argc, char *argv[])
     }else{
         badCommand();
     }
-//    fwrite();
-//    fputs( argv[1],fp);
-//    fputs( "\n",fp);
-//    fgets(0,x);
-//    fgets        Reads a line from a stream
-//    fputs        Writes a string to a stream
-//        filecopy(stdin, stdout);
      fclose(fp);
     return 0;
+}
+
+void dCommand(FILE *fp, char *k) {
+    char *s;
+    char *st = strdup(k);
+    char * line = NULL;
+    size_t len = 0;
+    fp = fopen("database.txt", "r");
+    if (fp == NULL){
+        exit(EXIT_FAILURE);
+    }
+    int comma=0;
+    int exp =1;
+    for (int i = 0; i < strlen(k); ++i) {
+        if(k[i]==','){
+            comma++;
+        }
+    }
+    if(comma!=1){
+        exp = 0;
+    }
+    int x = 0;
+    while ((s = strsep(&st, ",")) != NULL ){
+        if(x>1){
+            exp = 0;
+            break;
+        }
+        if(x == 0 ){
+            if(strcmp("d",s)!=0){
+                exp = 0;
+                break;
+            }
+        }
+        if(x==1) {
+            for (int i = 0; i < strlen(s); ++i) {
+                if( isdigit(s[i]) == 0){
+                    ///// exception
+                    exp = 0;
+                    break;
+                }
+            }
+        }x++;
+    }
+    if(exp==0){
+        badCommand();
+    }else {
+        char *comp;
+        int cnt = 0;
+
+        while ((s = strsep(&k, ",")) != NULL) {
+            if (cnt == 1) {
+                comp = s;
+            } else
+                cnt++;
+        }
+        bool finished = false;
+        int lineNumber = 0;
+        while ((getline(&line, &len, fp)) != -1) {
+            lineNumber++;
+            while ((s = strsep(&line, ",")) != NULL) {
+
+                if (strcmp(s, comp) == 0) {
+                    finished = true;
+                    break;
+                } else {
+                    break;
+                }
+            }
+            if (finished) {
+                removeLine(lineNumber);
+                break;
+            }
+        }
+
+    }
+}
+void removeLine(int number) {
+    FILE *fileptr1, *fileptr2;
+    char filename[40] = "database.txt";
+    char ch;
+    int delete_line, temp = 1;
+    //open file in read mode
+    fileptr1 = fopen("database.txt", "r");
+//    ch = getc(fileptr1);
+//    while (ch != EOF)
+//    {
+//        printf("%c", ch);
+//        ch = getc(fileptr1);
+//    }
+    //rewind
+//    rewind(fileptr1);
+//    printf(" \n Enter line number of the line to be deleted:");
+//    scanf("%d", &delete_line);
+    delete_line = number;
+    //open new file in write mode
+    fileptr2 = fopen("replica.c", "w");
+    ch = getc(fileptr1);
+
+    while (ch != EOF)
+    {
+        //except the line to be deleted
+        if (temp != delete_line)
+        {
+            //copy all lines in file replica.c
+            putc(ch, fileptr2);
+        }
+        if (ch == '\n')
+        {
+            temp++;
+        }
+        ch = getc(fileptr1);
+    }
+//    fclose(fileptr1);
+//    fclose(fileptr2);
+    remove(filename);
+    //rename the file replica.c to original name
+    rename("replica.c", filename);
+//    printf("\n The contents of file after being modified are as follows:\n");
+//    fileptr1 = fopen(filename, "r");
+//    ch = getc(fileptr1);
+//    while (ch != EOF)
+//    {
+//        printf("%c", ch);
+//        ch = getc(fileptr1);
+//    }
+//    fclose(fileptr1);
 }
 
 void addKV(FILE *fp, char *k) {

@@ -1,2 +1,1 @@
-10,ana
-20,rrr
+40,mandi
