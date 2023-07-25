@@ -1,5 +1,1 @@
-40,mandi
-10,ahmed
-20,nono
-30,ad
-90,myman
+
